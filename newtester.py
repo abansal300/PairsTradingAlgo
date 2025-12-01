@@ -4,8 +4,8 @@ import os
 from alpaca_trade_api.stream import Stream
 
 
-os.environ['ALPACA_API_KEY']    = 'PKZZEINJNV5FKHH0U4IS'
-os.environ['ALPACA_SECRET_KEY'] = 'zNUNmlaMLaQYYJYLnNZO33CIWZGmB7d5HCY7iI8D'
+os.environ['ALPACA_API_KEY']    = 'PKNTA2P3AB8DC3ZGQ6MP'
+os.environ['ALPACA_SECRET_KEY'] = 'm3ugII9UkjFtTaUrIeqweO9c8uheaRYxpddaUEEK'
 API_KEY    = os.environ['ALPACA_API_KEY']
 API_SECRET = os.environ['ALPACA_SECRET_KEY']
 
@@ -96,15 +96,25 @@ class RealTimeTradingStrategy:
             logging.error("API not initialized—cannot fetch real-time prices.")
             return None
         try:
+            # Try SIP feed first (premium)
             trade = self.api.get_latest_trade(symbol, feed='sip')
-            # some SDK versions expose price as .price, others as .p — keep both:
             price = getattr(trade, "price", None)
             if price is None:
                 price = getattr(trade, "p", None)
             return price
         except Exception as e:
-            logging.error(f"Error fetching price for {symbol}: {e}")
-            return None
+            logging.warning(f"SIP feed failed for {symbol}: {e}")
+            try:
+                # Fallback to free IEX feed
+                trade = self.api.get_latest_trade(symbol, feed='iex')
+                price = getattr(trade, "price", None)
+                if price is None:
+                    price = getattr(trade, "p", None)
+                logging.info(f"Using IEX feed for {symbol}: ${price}")
+                return price
+            except Exception as e2:
+                logging.error(f"Both SIP and IEX feeds failed for {symbol}: {e2}")
+                return None
 
     def place_order(self, symbol: str, qty: int, side: str, type: str = "market", time_in_force: str = "gtc"):
         if self.api is None:
