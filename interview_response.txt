@@ -1,0 +1,6 @@
+So I built an automated pairs trading algorithm that trades two correlated stocks—like Eli Lilly and Amgen—when they temporarily diverge. 
+
+Here's how it works: I download historical data, calculate a statistical spread between the stocks, and use z-scores to detect when that spread gets unusually wide. When that happens, I go long one stock and short the other, betting they'll converge back. The system runs a grid search optimization first to find the best entry and exit thresholds, then switches to live trading during market hours using the Alpaca API.
+
+I've implemented risk management with stop-losses, position sizing, and slippage calculations. It's currently running in paper trading mode, so I can test everything safely before going live. The whole thing runs continuously during market hours, checking prices every 30 seconds and automatically executing trades when the conditions are met.
+
